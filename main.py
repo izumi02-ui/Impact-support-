@@ -35,7 +35,7 @@ class HelpContactView(View):
 @bot.tree.command(name="help", description="Send a custom help message to the admin team")
 @app_commands.describe(message="Aapka message jo admin ko bhejna hai")
 async def help_command(interaction: discord.Interaction, message: str):
-    HELP_CHANNEL_ID = 1234567890  # Yaha apna Custom Channel ID dalein
+    HELP_CHANNEL_ID = 1362413073436250354  # Yaha apna Custom Channel ID dalein
     channel = bot.get_channel(HELP_CHANNEL_ID)
     
     embed = discord.Embed(title="New Help Request", description=message, color=discord.Color.blue())

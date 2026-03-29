@@ -52,18 +52,44 @@ async def clear(interaction: discord.Interaction, amount: int):
     deleted = await interaction.channel.purge(limit=amount)
     await interaction.followup.send(f"Done! {len(deleted)} messages deleted.", ephemeral=True)
 
-# --- 3. Custom Messenger (Dropdown & Nexus Style) ---
-class ChannelSelect(Select):
-    def __init__(self, bot):
-        options = [
-            discord.SelectOption(label=ch.name, value=str(ch.id)) 
-            for ch in bot.get_guild(interaction_guild_id).text_channels[:25] # Top 25 channels
-        ]
-        super().__init__(placeholder="Select a channel...", options=options)
+# --- 3. Custom Messenger (Modal & Dashboard System) ---
+
+class ChannelModal(discord.ui.Modal, title='Manual Channel ID Entry'):
+    channel_id_input = discord.ui.TextInput(
+        label='Enter Channel ID',
+        placeholder='Paste the ID here...',
+        required=True,
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        try:
+            ch_id = int(self.channel_id_input.value.strip())
+            ch = bot.get_channel(ch_id)
+            if not ch:
+                return await interaction.followup.send("❌ Channel nahi mila!", ephemeral=True)
+            await interaction.followup.send(f"✅ Target set to: <#{ch.id}>", ephemeral=True)
+        except:
+            await interaction.followup.send("❌ Invalid ID!", ephemeral=True)
+
+class PriorityChannelSelect(discord.ui.Select):
+    def __init__(self):
+        # Aapki screenshot wali list
+        priority_names = ["staff-talk", "general-chat-💬", "announcements", "polls", "store"]
+        options = [discord.SelectOption(label=f"#{name}", value=name) for name in priority_names]
+        super().__init__(placeholder='Select a priority channel...', options=options)
 
     async def callback(self, interaction: discord.Interaction):
-        # Yaha msg bhenjne ka logic aayega
-        await interaction.response.send_message(f"Channel selected: <#{self.values[0]}>", ephemeral=True)
+        await interaction.response.send_message(f"✅ Selected: {self.values[0]}", ephemeral=True)
+
+class DashboardView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.add_item(PriorityChannelSelect())
+
+    @discord.ui.button(label="Manual ID", style=discord.ButtonStyle.primary)
+    async def manual_id(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.send_modal(ChannelModal())
 
 # --- 4. /userinfo Command ---
 @bot.tree.command(name="userinfo", description="Get detailed info about a user")
@@ -108,5 +134,9 @@ async def list_punishment(interaction: discord.Interaction):
     msg = "\n".join([f"<@{uid}>: {action}" for uid, action in punishments.items()])
     await interaction.response.send_message(f"**Punishment List:**\n{msg}")
 
+@bot.tree.command(name="dashboard", description="NEXUS Priority Dashboard")
+async def dashboard(interaction: discord.Interaction):
+    await interaction.response.send_message("⚙️ **NEXUS Dashboard**", view=DashboardView(), ephemeral=True)
+    
 bot.run(os.getenv('TOKEN'))
   

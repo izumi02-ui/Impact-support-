@@ -50,7 +50,7 @@ async def help_command(interaction: discord.Interaction, message: str):
 async def clear(interaction: discord.Interaction, amount: int):
     await interaction.response.defer(ephemeral=True)
     deleted = await interaction.channel.purge(limit=amount)
-    await interaction.followup.send(f"Done! {len(deleted)} messages delete kar diye gaye.", ephemeral=True)
+    await interaction.followup.send(f"Done! {len(deleted)} messages deleted.", ephemeral=True)
 
 # --- 3. Custom Messenger (Dropdown & Nexus Style) ---
 class ChannelSelect(Select):
